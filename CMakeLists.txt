@@ -143,7 +143,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
         VS_GLOBAL_AppxPackageSigningEnabled OFF
     )
     
-    # Add dummy assets
+    # Add assets
     set(UWP_ASSETS
         ${SRC_DIR}/UWP/Assets/Square150x150Logo.png
         ${SRC_DIR}/UWP/Assets/Square44x44Logo.png
@@ -157,6 +157,16 @@ if (CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
     endforeach()
     
     target_sources(${PROJECT_NAME} PRIVATE ${UWP_ASSETS})
+
+    # Add required runtime DLLs to package
+    set(UWP_DLLS
+        ${CMAKE_CURRENT_SOURCE_DIR}/external/vcpkg/installed/x64-uwp/bin/lz4.dll
+        ${CMAKE_CURRENT_SOURCE_DIR}/external/vcpkg/installed/x64-uwp/bin/zstd.dll
+    )
+    foreach(DLL ${UWP_DLLS})
+        set_source_files_properties(${DLL} PROPERTIES VS_DEPLOYMENT_CONTENT 1)
+    endforeach()
+    target_sources(${PROJECT_NAME} PRIVATE ${UWP_DLLS})
 
 elseif (ENABLE_GUI)
 
