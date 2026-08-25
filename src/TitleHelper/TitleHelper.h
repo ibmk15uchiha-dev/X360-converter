@@ -29,7 +29,7 @@ public:
     const std::vector<char16_t>& title_name() { return utf16_title_name_; };
     const std::vector<char>& title_icon();
 
-    Platform platform() { return platform_; };
+    XboxPlatform platform() { return platform_; };
     const Xex::ExecutionInfo& xex_cert() { return xex_cert_; };
     const Xbe::Cert& xbe_cert() { return xbe_cert_; };
 
@@ -55,7 +55,7 @@ private:
     // These are here so we don't need a bunch of ExeTool instances everywhere
     Xex::ExecutionInfo xex_cert_;
     Xbe::Cert xbe_cert_;
-    Platform platform_{Platform::UNKNOWN};
+    XboxPlatform platform_{XboxPlatform::UNKNOWN};
 
     void initialize();  
     void initialize_offline(ExeTool& exe_tool);

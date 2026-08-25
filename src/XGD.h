@@ -11,7 +11,7 @@
 
 namespace XGD {
 
-    constexpr char     NAME[]         = "XGDTool";
+    constexpr char     NAME[]         = "XB converter";
     constexpr char     VERSION[]      = XGDTOOL_VERSION;
 
     constexpr char     OPTIMIZED_TAG[]       = "in!xgdt!" XGDTOOL_VERSION " (" XGDTOOL_DATE ")";

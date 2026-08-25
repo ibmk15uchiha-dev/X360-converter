@@ -10,12 +10,12 @@ ExeTool::ExeTool(const std::filesystem::path& in_exe_path)
 {
     if (StringUtils::case_insensitive_search(in_exe_path.string(), ".xex")) 
     {
-        platform_ = Platform::X360;
+        platform_ = XboxPlatform::X360;
         get_xex_cert_from_xex(in_exe_path);
     } 
     else if (StringUtils::case_insensitive_search(in_exe_path.string(), ".xbe")) 
     {
-        platform_ = Platform::OGX;
+        platform_ = XboxPlatform::OGX;
         get_xbe_cert_from_xbe(in_exe_path);
         create_xex_cert_from_xbe();
     }
@@ -29,11 +29,11 @@ ExeTool::ExeTool(ImageReader& image_reader, const std::filesystem::path& entry_p
 {
     platform_ = image_reader.platform();
 
-    if (platform_ == Platform::X360) 
+    if (platform_ == XboxPlatform::X360) 
     {
         get_xex_cert_from_reader(image_reader, entry_path);
     } 
-    else if (platform_ == Platform::OGX) 
+    else if (platform_ == XboxPlatform::OGX) 
     {
         get_xbe_cert_from_reader(image_reader, entry_path);
         create_xex_cert_from_xbe();
@@ -48,7 +48,7 @@ uint32_t ExeTool::title_id()
 {
     if (title_id_ == 0) 
     {
-        if (platform_ == Platform::X360) 
+        if (platform_ == XboxPlatform::X360) 
         {
             title_id_ = xex_cert_.title_id;
 
@@ -57,7 +57,7 @@ uint32_t ExeTool::title_id()
                 EndianUtils::swap_endian(title_id_);
             }
         } 
-        else if (platform_ == Platform::OGX) 
+        else if (platform_ == XboxPlatform::OGX) 
         {
             title_id_ = xbe_cert_.title_id;
 

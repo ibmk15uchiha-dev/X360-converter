@@ -33,7 +33,7 @@ public:
 
     uint32_t max_data_sector();
     uint64_t total_file_bytes();
-    Platform platform();
+    XboxPlatform platform();
     Xiso::FileTime file_time();
 
 private:
@@ -43,7 +43,7 @@ private:
 
     uint32_t max_data_sector_{0};
     uint64_t total_file_bytes_{0};
-    Platform platform_{Platform::UNKNOWN};
+    XboxPlatform platform_{XboxPlatform::UNKNOWN};
     Xiso::FileTime file_time_{};
 
     void populate_directory_entries(bool exe_only);

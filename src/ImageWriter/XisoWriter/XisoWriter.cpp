@@ -38,7 +38,7 @@ std::vector<std::filesystem::path> XisoWriter::convert_to_xiso(const std::filesy
     ImageReader& image_reader = *image_reader_;
     uint32_t sector_offset = static_cast<uint32_t>(image_reader.image_offset() / Xiso::SECTOR_SIZE);
     uint32_t end_sector = image_reader.total_sectors();
-    const std::unordered_set<uint32_t>* data_sectors;
+    const std::unordered_set<uint32_t>* data_sectors = nullptr;
 
     if (scrub) 
     {
@@ -60,7 +60,7 @@ std::vector<std::filesystem::path> XisoWriter::convert_to_xiso(const std::filesy
     {
         bool write_sector = true;
 
-        if (scrub && image_reader.platform() == Platform::OGX) 
+        if (scrub && image_reader.platform() == XboxPlatform::OGX) 
         {
             write_sector = data_sectors->find(i) != data_sectors->end();
         }

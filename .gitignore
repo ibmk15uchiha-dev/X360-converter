@@ -1,6 +1,86 @@
-.vscode
-.ignore
-build
-src/Executable/AttachXbe.h
-external/CLI
-external/nlohmann
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.tlog
+*.idb
+*.pdb
+*.ilk
+*.exp
+
+# CMake build directories & files
+build/
+build*/
+build-*/
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Testing/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+
+# UWP / MSIX / AppX Packaging
+AppPackages/
+BundleArtifacts/
+Package.StoreAssociation.xml
+_pkginfo.txt
+*.appx
+*.msix
+*.appxbundle
+*.msixbundle
+*.appxrecipe
+*.xbf
+resources.pri
+Generated\ Files/
+Generated Files/
+
+# Vcpkg folders (cache, installed packages, downloads)
+external/vcpkg/installed/
+external/vcpkg/buildtrees/
+external/vcpkg/packages/
+external/vcpkg/downloads/
+external/vcpkg/vcpkg.exe
+external/vcpkg/vcpkg
+
+# OS generated files
+.DS_Store
+Thumbs.db

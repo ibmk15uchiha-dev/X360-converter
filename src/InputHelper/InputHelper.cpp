@@ -191,7 +191,7 @@ std::vector<std::filesystem::path> InputHelper::create_image(InputInfo& input_in
         }
     }
 
-    if (output_settings_.attach_xbe && title_helper->platform() == Platform::OGX)
+    if (output_settings_.attach_xbe && title_helper->platform() == XboxPlatform::OGX)
     {
         AttachXbeTool attach_xbe_tool(*title_helper);
         attach_xbe_tool.generate_attach_xbe(final_out_paths.front().parent_path() / "default.xbe");
@@ -240,7 +240,7 @@ std::vector<std::filesystem::path> InputHelper::create_attach_xbe(const InputInf
 
     std::shared_ptr<ImageReader> image_reader = ImageReader::create_instance(input_info.file_type, input_info.paths);
 
-    if (image_reader->platform() != Platform::OGX)
+    if (image_reader->platform() != XboxPlatform::OGX)
     {
         throw XGDException(ErrCode::ISO_INVALID, HERE(), "Attach XBE can only be created for OGX images");
     }

@@ -57,8 +57,8 @@ void MainFrame::on_pause_process(wxCommandEvent& event)
 
     if (current_status_ == Status::PAUSED)
     {
-        stored_status_ = status_field_->GetLabel().ToStdString();
-        status_field_->SetLabel("Paused");
+        stored_status_ = status_field_->GetValue().ToStdString();
+        status_field_->SetValue("Paused");
 
         if (input_helper_)
         {
@@ -67,9 +67,9 @@ void MainFrame::on_pause_process(wxCommandEvent& event)
     }
     else
     {
-        if (status_field_->GetLabel().ToStdString() == "Paused") // status field was not updated by the processing thread
+        if (status_field_->GetValue().ToStdString() == "Paused") // status field was not updated by the processing thread
         {
-            status_field_->SetLabel(stored_status_);
+            status_field_->SetValue(stored_status_);
         }
 
         if (input_helper_)
@@ -122,7 +122,7 @@ void MainFrame::on_process_all(wxCommandEvent& event)
         return;
     }
 
-    status_field_->SetLabel("Processing input files");
+    status_field_->SetValue("Processing input files");
 
     total_progress_bar_->SetRange(input_helper_->input_infos().size());
     total_progress_bar_->SetValue(0);
@@ -160,7 +160,7 @@ void MainFrame::on_thread_completed(wxThreadEvent& event)
         processing_thread_.reset();
     }
 
-    status_field_->SetLabel("Processing complete");
+    status_field_->SetValue("Processing complete");
 
     if (input_helper_->failed_inputs().size() > 0)
     {
@@ -171,7 +171,7 @@ void MainFrame::on_thread_completed(wxThreadEvent& event)
 
         if (current_status_ == Status::CANCELED)
         {
-            status_field_->SetLabel("Processing cancelled");
+            status_field_->SetValue("Processing cancelled");
         }
     }
 
@@ -320,7 +320,7 @@ void MainFrame::update_status_field(const std::string status)
 void MainFrame::on_update_current_stage(wxThreadEvent& event)
 {
     auto data = event.GetPayload<std::string>();
-    status_field_->SetLabel(data);
+    status_field_->SetValue(data);
 }
 
 std::string MainFrame::get_file_type_string(FileType type)
@@ -396,6 +396,25 @@ void MainFrame::update_button_states()
     process_buttons_.process->Enable(!processing);
     process_buttons_.pause->Enable(processing);    
     process_buttons_.cancel->Enable(processing);
+
+    if (processing) {
+        process_buttons_.process->SetBackgroundColour(wxColour(45, 45, 45));
+        process_buttons_.process->SetForegroundColour(wxColour(180, 180, 180));
+        process_buttons_.pause->SetBackgroundColour(wxColour(0, 120, 215));
+        process_buttons_.pause->SetForegroundColour(wxColour(255, 255, 255));
+        process_buttons_.cancel->SetBackgroundColour(wxColour(200, 40, 40));
+        process_buttons_.cancel->SetForegroundColour(wxColour(255, 255, 255));
+    } else {
+        process_buttons_.process->SetBackgroundColour(wxColour(0, 160, 50));
+        process_buttons_.process->SetForegroundColour(wxColour(255, 255, 255));
+        process_buttons_.pause->SetBackgroundColour(wxColour(45, 45, 45));
+        process_buttons_.pause->SetForegroundColour(wxColour(255, 255, 255));
+        process_buttons_.cancel->SetBackgroundColour(wxColour(45, 45, 45));
+        process_buttons_.cancel->SetForegroundColour(wxColour(255, 255, 255));
+    }
+    process_buttons_.process->Refresh();
+    process_buttons_.pause->Refresh();
+    process_buttons_.cancel->Refresh();
     
     input_picker_.button->Enable(!processing);
     output_picker_.button->Enable(!processing);

@@ -11,7 +11,7 @@
 #include <vector>
 #include <memory>
 
-#include <openssl/sha.h>
+#include "Utils/sha1.h"
 
 #include "XGD.h"
 #include "Formats/GoD.h"

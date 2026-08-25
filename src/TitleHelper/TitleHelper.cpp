@@ -1,9 +1,11 @@
 #include <regex>
 #include <algorithm>
 
+#ifndef XGD_OFFLINE_ONLY
 #include <curl/curl.h>
-#include <nlohmann/json.hpp>
 #include <openssl/sha.h>
+#endif
+#include <nlohmann/json.hpp>
 
 #include "Utils/StringUtils.h"
 #include "TitleHelper/TitleHelper.h"
@@ -61,20 +63,22 @@ void TitleHelper::initialize()
 
     bool initialized = false;   
 
+#ifndef XGD_OFFLINE_ONLY
     if (!offline_mode_ && internet_connected()) 
     {
         switch (platform_) 
         {
-            case Platform::X360:
+            case XboxPlatform::X360:
                 initialized = set_x360_titles_online(*exe_tool);
                 break;
-            case Platform::OGX:
+            case XboxPlatform::OGX:
                 initialized = set_ogx_titles_online(*exe_tool);
                 break;
             default:
                 throw XGDException(ErrCode::MISC, HERE(), "Invalid platform.");
         }
     } 
+#endif
 
     if (!initialized) 
     {
@@ -118,6 +122,7 @@ void TitleHelper::initialize_offline(ExeTool& exe_tool)
     }
 }
 
+#ifndef XGD_OFFLINE_ONLY
 bool TitleHelper::set_ogx_titles_online(ExeTool& exe_tool) 
 {
     std::string url = REPACK_LIST_URL;
@@ -273,14 +278,29 @@ bool TitleHelper::set_x360_titles_online(ExeTool& exe_tool)
 
     return true;
 }
+#else
+bool TitleHelper::set_ogx_titles_online(ExeTool&) 
+{
+    return false;
+}
+
+bool TitleHelper::set_x360_titles_online(ExeTool&) 
+{
+    return false;
+}
+#endif
 
 const std::vector<char>& TitleHelper::title_icon() {
+#ifndef XGD_OFFLINE_ONLY
     if (title_icon_data_.empty() && !offline_mode_ && internet_connected()) 
     {
         unity_get_title_icon(title_id_, title_icon_data_);
     }
+#endif
     return title_icon_data_;
 }
+
+#ifndef XGD_OFFLINE_ONLY
 
 bool TitleHelper::internet_connected() 
 {
@@ -423,6 +443,8 @@ bool TitleHelper::unity_get_title_icon(uint32_t title_id, std::vector<char>& ico
     return false;
 }
 
+#endif // XGD_OFFLINE_ONLY
+
 // Games on Demand
 
 template <typename T>
@@ -448,6 +470,7 @@ std::string TitleHelper::create_unique_name(const Xex::ExecutionInfo& xex_cert)
 
     std::string data = ss.str();
 
+#ifndef XGD_OFFLINE_ONLY
     unsigned char hash[SHA_DIGEST_LENGTH];
     SHA1(reinterpret_cast<const unsigned char*>(data.c_str()), data.size(), hash);
 
@@ -456,6 +479,12 @@ std::string TitleHelper::create_unique_name(const Xex::ExecutionInfo& xex_cert)
     {
         hex_stream << std::setw(2) << std::setfill('0') << std::hex << static_cast<int>(hash[i]);
     }
+#else
+    // Simple hash fallback for UWP (no OpenSSL)
+    size_t hash_val = std::hash<std::string>{}(data);
+    std::ostringstream hex_stream;
+    hex_stream << std::setw(10) << std::setfill('0') << std::hex << hash_val;
+#endif
 
     std::string unique_name = hex_stream.str();
     std::transform(unique_name.begin(), unique_name.end(), unique_name.begin(), ::toupper);

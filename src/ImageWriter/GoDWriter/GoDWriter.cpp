@@ -19,10 +19,10 @@ std::vector<std::filesystem::path> GoDWriter::convert(const std::filesystem::pat
 
     switch (title_helper_.platform()) 
     {
-        case Platform::OGX:
+        case XboxPlatform::OGX:
             platform_str = StringUtils::uint32_to_hex_string(GoD::Type::ORIGINAL_XBOX);
             break;
-        case Platform::X360:
+        case XboxPlatform::X360:
             platform_str = StringUtils::uint32_to_hex_string(GoD::Type::GAMES_ON_DEMAND);
             break;
         default:
@@ -281,7 +281,7 @@ std::vector<std::filesystem::path> GoDWriter::write_data_files(const std::filesy
     ImageReader& image_reader = *image_reader_;
     uint32_t sector_offset = static_cast<uint32_t>(image_reader.image_offset() / Xiso::SECTOR_SIZE);
     uint32_t last_sector = image_reader.total_sectors();
-    const std::unordered_set<uint32_t>* data_sectors;
+    const std::unordered_set<uint32_t>* data_sectors = nullptr;
 
     if (scrub) 
     {
@@ -319,7 +319,7 @@ std::vector<std::filesystem::path> GoDWriter::write_data_files(const std::filesy
     {
         bool write_sector = true;
 
-        if (scrub && image_reader.platform() == Platform::OGX) //No need to zero out padding for Xbox 360
+        if (scrub && image_reader.platform() == XboxPlatform::OGX) //No need to zero out padding for Xbox 360
         {
             write_sector = data_sectors->find(current_sector) != data_sectors->end();
         }
@@ -523,7 +523,7 @@ void GoDWriter::write_live_header(const std::filesystem::path& out_header_path, 
 
     uint32_t parts_written_size = static_cast<uint32_t>(parts_total_size / 0x100);
     uint32_t part_count = static_cast<uint32_t>(out_part_paths.size());
-    uint32_t content_type = (title_helper_.platform() == Platform::X360) ? GoD::Type::GAMES_ON_DEMAND : GoD::Type::ORIGINAL_XBOX;
+    uint32_t content_type = (title_helper_.platform() == XboxPlatform::X360) ? GoD::Type::GAMES_ON_DEMAND : GoD::Type::ORIGINAL_XBOX;
 
     EndianUtils::little_32(part_count);
     EndianUtils::big_32(parts_written_size);
@@ -616,7 +616,7 @@ uint64_t GoDWriter::to_iso_offset(const uint64_t god_offset, const uint32_t god_
 GoDWriter::SHA1Hash GoDWriter::compute_sha1(const char* data, const uint64_t size) 
 {
     SHA1Hash result;
-    SHA1(reinterpret_cast<const unsigned char*>(data), size, result.hash);
+    XGD_SHA1::compute(reinterpret_cast<const uint8_t*>(data), static_cast<size_t>(size), result.hash);
     return result;
 }
 

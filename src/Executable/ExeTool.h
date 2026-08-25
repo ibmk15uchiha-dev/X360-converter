@@ -17,7 +17,7 @@ public:
 
     ~ExeTool() = default;
 
-    Platform platform() { return platform_; };
+    XboxPlatform platform() { return platform_; };
 
     // Will construct Xex cert from Xbe if Xbe input
     const Xex::ExecutionInfo& xex_cert() { return xex_cert_; }; 
@@ -33,7 +33,7 @@ public:
     uint64_t cert_offset() { return cert_offset_; }; 
 
 private:
-    Platform platform_{Platform::UNKNOWN};
+    XboxPlatform platform_{XboxPlatform::UNKNOWN};
 
     uint64_t exe_offset_{0};
     uint64_t cert_offset_{0};

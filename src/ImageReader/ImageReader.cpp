@@ -43,17 +43,17 @@ const Xiso::DirectoryEntry& ImageReader::executable_entry()
     return executable_entry_;
 }
 
-Platform ImageReader::platform() 
+XboxPlatform ImageReader::platform() 
 {
-    if (platform_ == Platform::UNKNOWN) 
+    if (platform_ == XboxPlatform::UNKNOWN) 
     {
         if (StringUtils::case_insensitive_search(executable_entry().filename, ".xex"))
         {
-            platform_ = Platform::X360;
+            platform_ = XboxPlatform::X360;
         }
         else if (StringUtils::case_insensitive_search(executable_entry().filename, ".xbe"))
         {
-            platform_ = Platform::OGX;
+            platform_ = XboxPlatform::OGX;
         }
         else
         {
@@ -110,7 +110,7 @@ const std::unordered_set<uint32_t>& ImageReader::data_sectors()
 
     std::unordered_set<uint32_t> security_sectors;
 
-    if (platform() == Platform::OGX && get_security_sectors(security_sectors)) 
+    if (platform() == XboxPlatform::OGX && get_security_sectors(security_sectors)) 
     {
         for (const auto& sector : security_sectors) 
         {

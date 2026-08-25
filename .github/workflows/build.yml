@@ -1,0 +1,32 @@
+name: Build XB Converter
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  pull_request:
+    branches: [ "master", "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Set up MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Configure Desktop Build
+      run: cmake -S . -B build_desktop -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build Desktop Executable
+      run: cmake --build build_desktop --config Release
+
+    - name: Upload Desktop Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: XB-converter-Desktop
+        path: build_desktop/Release/XB converter.exe

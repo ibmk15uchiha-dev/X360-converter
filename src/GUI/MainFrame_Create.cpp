@@ -8,7 +8,11 @@ void MainFrame::create_frame()
         SetIcon(icon);
     #endif
 
+    // Dark theme: frame-level background
+    SetBackgroundColour(wxColour(0x0d, 0x0d, 0x0d));
+
     wxPanel* panel = new wxPanel(this, wxID_ANY);
+    panel->SetBackgroundColour(wxColour(0x0d, 0x0d, 0x0d));
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -16,18 +20,25 @@ void MainFrame::create_frame()
     fg_sizer->AddGrowableCol(1, 1); 
     fg_sizer->AddGrowableRow(2, 1);
 
+    auto set_text_color = [&](wxWindow* win) { win->SetForegroundColour(wxColour(240, 240, 240)); };
+
     wxStaticText* input_label = new wxStaticText(panel, wxID_ANY, "Input Path:");
+    set_text_color(input_label);
     fg_sizer->Add(input_label, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT);
     fg_sizer->Add(create_input_picker_box(panel), 1, wxEXPAND);
 
     wxStaticText* output_label = new wxStaticText(panel, wxID_ANY, "Output Directory:");
+    set_text_color(output_label);
     fg_sizer->Add(output_label, 1, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT);
     fg_sizer->Add(create_output_picker_box(panel), 1, wxEXPAND);
 
     wxStaticText* file_list_label = new wxStaticText(panel, wxID_ANY, "File List:");
+    set_text_color(file_list_label);
     fg_sizer->Add(file_list_label, 2, wxALIGN_TOP | wxALIGN_RIGHT);
 
     file_list_ = new wxListCtrl(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_SINGLE_SEL);
+    file_list_->SetBackgroundColour(wxColour(45, 45, 45));
+    file_list_->SetForegroundColour(wxColour(200, 200, 200));
     file_list_->InsertColumn(0, "Format", wxLIST_FORMAT_LEFT, 60);
     file_list_->InsertColumn(1, "Filename", wxLIST_FORMAT_LEFT, 600);
 
@@ -37,6 +48,8 @@ void MainFrame::create_frame()
     wxStaticText* current_progress_label = new wxStaticText(panel, wxID_ANY, "Current Progress:");
     wxStaticText* total_progress_label = new wxStaticText(panel, wxID_ANY, "Total Progress:");
     wxStaticText* status_label = new wxStaticText(panel, wxID_ANY, "Status:");
+    
+    for(auto t : {current_progress_label, total_progress_label, status_label}) set_text_color(t);
 
     progress_lables_sizer->Add(status_label, 0, wxALIGN_RIGHT);
     progress_lables_sizer->AddSpacer(18);
@@ -64,8 +77,9 @@ void MainFrame::create_frame()
     total_progress_bar_ = new wxGauge(panel, wxID_ANY, 100, wxDefaultPosition, wxSize(-1, 25));
 
     status_field_ = new wxTextCtrl(panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
-    status_field_->SetBackgroundStyle(wxBG_STYLE_ERASE);
-    status_field_->SetLabel("Idle");
+    status_field_->SetBackgroundColour(wxColour(45, 45, 45));
+    status_field_->SetForegroundColour(wxColour(100, 200, 255));
+    status_field_->SetValue("Idle");
 
     settings_progress_bar_sizer->Add(status_field_, 0, wxEXPAND);
     settings_progress_bar_sizer->AddSpacer(10);
@@ -93,11 +107,14 @@ wxBoxSizer* MainFrame::create_input_picker_box(wxPanel* panel)
 {
     wxBoxSizer* input_sizer = new wxBoxSizer(wxHORIZONTAL);
     input_picker_.field = new wxTextCtrl(panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
-    input_picker_.field->SetBackgroundColour(wxColour(250, 250, 250));
+    input_picker_.field->SetBackgroundColour(wxColour(45, 45, 45));
+    input_picker_.field->SetForegroundColour(wxColour(240, 240, 240));
 
     input_sizer->Add(input_picker_.field, 1, wxEXPAND);
 
     input_picker_.button = new wxButton(panel, wxID_ANY, "Browse");
+    input_picker_.button->SetBackgroundColour(wxColour(60, 60, 60));
+    input_picker_.button->SetForegroundColour(wxColour(255, 255, 255));
     input_picker_.button->SetToolTip("Select the input file or directory to process");
     input_picker_.button->Bind(wxEVT_BUTTON, &MainFrame::on_pick_input_path, this);
 
@@ -110,11 +127,14 @@ wxBoxSizer* MainFrame::create_output_picker_box(wxPanel* panel)
 {
     wxBoxSizer* output_sizer = new wxBoxSizer(wxHORIZONTAL);
     output_picker_.field = new wxTextCtrl(panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
-    output_picker_.field->SetBackgroundColour(wxColour(250, 250, 250));
+    output_picker_.field->SetBackgroundColour(wxColour(45, 45, 45));
+    output_picker_.field->SetForegroundColour(wxColour(240, 240, 240));
 
     output_sizer->Add(output_picker_.field, 1, wxEXPAND);
 
     output_picker_.button = new wxButton(panel, wxID_ANY, "Browse");
+    output_picker_.button->SetBackgroundColour(wxColour(60, 60, 60));
+    output_picker_.button->SetForegroundColour(wxColour(255, 255, 255));
     output_picker_.button->SetToolTip("Select the output directory to save the processed files");
     output_picker_.button->Bind(wxEVT_BUTTON, &MainFrame::on_pick_output_path, this);
 
@@ -127,9 +147,16 @@ wxBoxSizer* MainFrame::create_process_buttons_box(wxPanel* panel)
 {
     wxBoxSizer* buttons_sizer = new wxBoxSizer(wxVERTICAL);
 
-    process_buttons_.process = new wxButton(panel, wxID_ANY, "Process All", wxDefaultPosition, wxSize(100, 25));
-    process_buttons_.pause = new wxButton(panel, wxID_ANY, "Pause", wxDefaultPosition, wxSize(100, 25));
-    process_buttons_.cancel = new wxButton(panel, wxID_ANY, "Cancel", wxDefaultPosition, wxSize(100, 25));
+    process_buttons_.process = new wxButton(panel, wxID_ANY, "Process All", wxDefaultPosition, wxSize(100, 28));
+    process_buttons_.pause = new wxButton(panel, wxID_ANY, "Pause", wxDefaultPosition, wxSize(100, 28));
+    process_buttons_.cancel = new wxButton(panel, wxID_ANY, "Cancel", wxDefaultPosition, wxSize(100, 28));
+
+    process_buttons_.process->SetBackgroundColour(wxColour(0, 160, 50));
+    process_buttons_.process->SetForegroundColour(wxColour(255, 255, 255));
+    process_buttons_.pause->SetBackgroundColour(wxColour(45, 45, 45));
+    process_buttons_.pause->SetForegroundColour(wxColour(255, 255, 255));
+    process_buttons_.cancel->SetBackgroundColour(wxColour(45, 45, 45));
+    process_buttons_.cancel->SetForegroundColour(wxColour(255, 255, 255));
 
     process_buttons_.process->SetToolTip("Process all files in the File List");
     process_buttons_.process->Bind(wxEVT_BUTTON, &MainFrame::on_process_all, this);
@@ -153,12 +180,15 @@ wxBoxSizer* MainFrame::create_out_scrub_radio_box(wxPanel* panel)
 {
     wxBoxSizer* scrub_rbs_sizer = new wxBoxSizer(wxVERTICAL);
     wxStaticText* scrub_label = new wxStaticText(panel, wxID_ANY, "Scrub:", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    scrub_label->SetForegroundColour(wxColour(240, 240, 240));
     scrub_rbs_sizer->Add(scrub_label, 0, wxALIGN_LEFT);
     scrub_rbs_sizer->AddSpacer(5);
 
     out_scrub_rbs_.none = new wxRadioButton(panel, wxID_ANY, "None", wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
     out_scrub_rbs_.partial = new wxRadioButton(panel, wxID_ANY, "Partial");
     out_scrub_rbs_.full = new wxRadioButton(panel, wxID_ANY, "Full");
+
+    for(auto r : {out_scrub_rbs_.none, out_scrub_rbs_.partial, out_scrub_rbs_.full}) r->SetForegroundColour(wxColour(200, 200, 200));
 
     out_scrub_rbs_.none->SetToolTip("No scrubbing, only video partion is removed if present");
     out_scrub_rbs_.partial->SetToolTip("Scrubs and trims the output image, random padding data is removed");
@@ -175,6 +205,7 @@ wxBoxSizer* MainFrame::create_out_settings_check_box(wxPanel* panel)
 {
     wxBoxSizer* out_settings_sizer = new wxBoxSizer(wxVERTICAL);
     wxStaticText* out_settings_label = new wxStaticText(panel, wxID_ANY, "Settings:", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    out_settings_label->SetForegroundColour(wxColour(240, 240, 240));
 
     out_settings_sizer->Add(out_settings_label, 0, wxALIGN_LEFT);
     out_settings_sizer->AddSpacer(5);
@@ -185,17 +216,16 @@ wxBoxSizer* MainFrame::create_out_settings_check_box(wxPanel* panel)
     out_settings_cbs_.rename_xbe = new wxCheckBox(panel, wxID_ANY, "Rename XBE Title");
     out_settings_cbs_.offline_mode = new wxCheckBox(panel, wxID_ANY, "Offline Mode");
     
+    auto checkboxes = {out_settings_cbs_.split, out_settings_cbs_.attach_xbe, out_settings_cbs_.allowed_media_xbe, out_settings_cbs_.rename_xbe, out_settings_cbs_.offline_mode};
+    for(auto c : checkboxes) c->SetForegroundColour(wxColour(200, 200, 200));
+    
     out_settings_cbs_.split->SetToolTip("Splits the resulting XISO file if it's too large for OG Xbox");
     out_settings_cbs_.attach_xbe->SetToolTip("Generates an attach XBE file along with the output file");
     out_settings_cbs_.allowed_media_xbe->SetToolTip("Patches the Allowed Media field in resulting XBE files");
     out_settings_cbs_.rename_xbe->SetToolTip("Replaces the title field of resulting XBE files with one found in the database");
     out_settings_cbs_.offline_mode->SetToolTip("Disables online functionality, will result in less accurate file naming");
     
-    out_settings_sizer->Add(out_settings_cbs_.split, 0, wxEXPAND);
-    out_settings_sizer->Add(out_settings_cbs_.attach_xbe, 0, wxEXPAND);
-    out_settings_sizer->Add(out_settings_cbs_.allowed_media_xbe, 0, wxEXPAND);
-    out_settings_sizer->Add(out_settings_cbs_.rename_xbe, 0, wxEXPAND);
-    out_settings_sizer->Add(out_settings_cbs_.offline_mode, 0, wxEXPAND);
+    for(auto c : checkboxes) out_settings_sizer->Add(c, 0, wxEXPAND);
 
     return out_settings_sizer;
 }
@@ -204,6 +234,7 @@ wxBoxSizer* MainFrame::create_out_format_radio_box(wxPanel* panel)
 {
     wxBoxSizer* out_format_sizer = new wxBoxSizer(wxVERTICAL);
     wxStaticText* out_format_label_1 = new wxStaticText(panel, wxID_ANY, "Output Format:", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    out_format_label_1->SetForegroundColour(wxColour(240, 240, 240));
 
     out_format_sizer->Add(out_format_label_1, 0, wxALIGN_LEFT);
     out_format_sizer->AddSpacer(5);
@@ -224,12 +255,14 @@ wxBoxSizer* MainFrame::create_out_format_radio_box(wxPanel* panel)
     auto_format_rbs_.xemu    = new wxRadioButton(panel, wxID_ANY, "Xemu");
     auto_format_rbs_.xenia   = new wxRadioButton(panel, wxID_ANY, "Xenia");
 
+    auto buttons = {out_format_rbs_.iso, out_format_rbs_.god, out_format_rbs_.cci, out_format_rbs_.cso, out_format_rbs_.zar, out_format_rbs_.extract, auto_format_rbs_.ogxbox, auto_format_rbs_.xbox360, auto_format_rbs_.xemu, auto_format_rbs_.xenia};
+    for(auto b : buttons) b->SetForegroundColour(wxColour(200, 200, 200));
+
     out_format_rbs_.iso->SetToolTip("Creates an XISO image");
     out_format_rbs_.god->SetToolTip("Creates a Games on Demand image");
     out_format_rbs_.cci->SetToolTip("Creates a CCI archive");
     out_format_rbs_.cso->SetToolTip("Creates a CSO archive");
     out_format_rbs_.zar->SetToolTip("Creates a ZAR archive");
-    
     out_format_rbs_.extract->SetToolTip("Extracts all files to a directory");
     auto_format_rbs_.ogxbox->SetToolTip("Automatically choose format and settings for use with OG Xbox");
     auto_format_rbs_.xbox360->SetToolTip("Automatically choose format and settings for use with Xbox 360");
@@ -253,17 +286,7 @@ wxBoxSizer* MainFrame::create_out_format_radio_box(wxPanel* panel)
     out_format_rbox->Add(out_format_rbox_2, 0, wxEXPAND);
     out_format_sizer->Add(out_format_rbox, 0, wxEXPAND);
 
-    out_format_rbs_.extract->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent&) { update_controls_state(); });
-    out_format_rbs_.iso->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent&) { update_controls_state(); });
-    out_format_rbs_.god->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent&) { update_controls_state(); });
-    out_format_rbs_.cci->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent&) { update_controls_state(); });
-    out_format_rbs_.cso->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent&) { update_controls_state(); });
-    out_format_rbs_.zar->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent&) { update_controls_state(); });
-
-    auto_format_rbs_.ogxbox->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent&) { update_controls_state(); });
-    auto_format_rbs_.xbox360->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent&) { update_controls_state(); });
-    auto_format_rbs_.xemu->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent&) { update_controls_state(); });
-    auto_format_rbs_.xenia->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent&) { update_controls_state(); });
+    for(auto b : buttons) b->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent&) { update_controls_state(); });
 
     return out_format_sizer;
 }
@@ -272,15 +295,17 @@ wxBoxSizer* MainFrame::create_info_box(wxPanel* panel)
 {
     wxBoxSizer* wo_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxStaticText* version_label = new wxStaticText(panel, wxID_ANY, wxString("v") + XGD::VERSION);
-    wxStaticText* wo_label = new wxStaticText(panel, wxID_ANY, " | By WiredOpposite: ");
-    wxHyperlinkCtrl* wo_link = new wxHyperlinkCtrl(panel, wxID_ANY, "wiredopposite.com", "https://wiredopposite.com");
-    wxStaticText* wo_text = new wxStaticText(panel, wxID_ANY, " | Github: ");
-    wxHyperlinkCtrl* wo_github_link = new wxHyperlinkCtrl(panel, wxID_ANY, "wiredopposite/xgdtool", "https://github.com/wiredopposite/xgdtool");
+    wxStaticText* wo_label = new wxStaticText(panel, wxID_ANY, " | By Hbolt | Github: ");
+    wxHyperlinkCtrl* wo_github_link = new wxHyperlinkCtrl(panel, wxID_ANY, "ibmk15uchiha-dev/XGDTool", "https://github.com/ibmk15uchiha-dev/XGDTool");
+    
+    version_label->SetForegroundColour(wxColour(0, 200, 83));
+    wo_label->SetForegroundColour(wxColour(180, 180, 180));
+    wo_github_link->SetNormalColour(wxColour(0, 200, 83));
+    wo_github_link->SetVisitedColour(wxColour(0, 200, 83));
+    wo_github_link->SetHoverColour(wxColour(100, 255, 150));
     
     wo_sizer->Add(version_label, 0, wxALIGN_CENTER_VERTICAL);
     wo_sizer->Add(wo_label, 0, wxALIGN_CENTER_VERTICAL);
-    wo_sizer->Add(wo_link, 0, wxALIGN_CENTER_VERTICAL);
-    wo_sizer->Add(wo_text, 0, wxALIGN_CENTER_VERTICAL);
     wo_sizer->Add(wo_github_link, 0, wxALIGN_CENTER_VERTICAL);
 
     return wo_sizer;

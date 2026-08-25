@@ -4,7 +4,11 @@ if (WIN32)
     set(VCPKG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external/vcpkg)
     include (${CMAKE_SOURCE_DIR}/cmake/setup_vcpkg.cmake)
     set(CMAKE_TOOLCHAIN_FILE ${VCPKG_DIR}/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
-    set(VCPKG_TARGET_TRIPLET x64-windows-static CACHE STRING "Vcpkg target triplet")
+    if (CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+        set(VCPKG_TARGET_TRIPLET x64-uwp CACHE STRING "Vcpkg target triplet")
+    else()
+        set(VCPKG_TARGET_TRIPLET x64-windows-static CACHE STRING "Vcpkg target triplet")
+    endif()
 endif()
 
 project(XGDTool)
@@ -21,11 +25,17 @@ endif()
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 if(MSVC)
-    set(CMAKE_CXX_FLAGS_DEBUG "/Zi /Od /MTd")
-    set(CMAKE_CXX_FLAGS_RELEASE "/O2 /GL /MT")
-    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "/LTCG /INCREMENTAL:NO")
-    set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "/LTCG /INCREMENTAL:NO")
-    set(CMAKE_MODULE_LINKER_FLAGS_RELEASE "/LTCG /INCREMENTAL:NO")
+    if(CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+        set(CMAKE_CXX_FLAGS_DEBUG "/Zi /Od /MDd")
+        set(CMAKE_CXX_FLAGS_RELEASE "/O2 /MD")
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+    else()
+        set(CMAKE_CXX_FLAGS_DEBUG "/Zi /Od /MTd")
+        set(CMAKE_CXX_FLAGS_RELEASE "/O2 /GL /MT")
+        set(CMAKE_EXE_LINKER_FLAGS_RELEASE "/LTCG /INCREMENTAL:NO")
+        set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "/LTCG /INCREMENTAL:NO")
+        set(CMAKE_MODULE_LINKER_FLAGS_RELEASE "/LTCG /INCREMENTAL:NO")
+    endif()
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
     set(CMAKE_CXX_FLAGS_RELEASE "-O2 -flto")
@@ -48,8 +58,6 @@ include_directories(
 )
 
 set(SRC 
-    ${SRC_DIR}/main.cpp
-    
     ${SRC_DIR}/XGDLog.cpp
     ${SRC_DIR}/XGDException.cpp
 
@@ -93,9 +101,67 @@ set(SRC
     ${SRC_DIR}/Formats/Xiso.cpp
 )
 
-if (ENABLE_GUI)
+if (CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+    add_definitions(-DENABLE_UWP)
+    add_definitions(-DXGD_OFFLINE_ONLY)
+
+    add_library(xgd_core STATIC ${SRC})
+    set_target_properties(xgd_core PROPERTIES 
+        MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
+    )
+
+    include_directories(
+        ${CMAKE_CURRENT_BINARY_DIR}
+        ${CMAKE_CURRENT_BINARY_DIR}/Generated\ Files
+        ${CMAKE_CURRENT_BINARY_DIR}/Generated\ Files/UWP
+        ${SRC_DIR}/UWP
+    )
+
+    set(UWP_SRC
+        ${SRC_DIR}/UWP/App.xaml
+        ${SRC_DIR}/UWP/App.xaml.cpp
+        ${SRC_DIR}/UWP/App.xaml.h
+        ${SRC_DIR}/UWP/MainPage.xaml
+        ${SRC_DIR}/UWP/MainPage.xaml.cpp
+        ${SRC_DIR}/UWP/MainPage.xaml.h
+        ${SRC_DIR}/UWP/pch.h
+        ${SRC_DIR}/UWP/Package.appxmanifest
+    )
+    
+    # Configure XAML item types for MSBuild XAML Compiler
+    set_source_files_properties(${SRC_DIR}/UWP/App.xaml PROPERTIES VS_XAML_TYPE "ApplicationDefinition")
+    set_source_files_properties(${SRC_DIR}/UWP/MainPage.xaml PROPERTIES VS_XAML_TYPE "Page")
+    set_source_files_properties(${SRC_DIR}/UWP/Package.appxmanifest PROPERTIES VS_DEPLOYMENT_CONTENT 1)
+    
+    add_executable(${PROJECT_NAME} WIN32 ${UWP_SRC})
+    
+    target_compile_options(${PROJECT_NAME} PRIVATE "/ZW")
+
+    set_target_properties(${PROJECT_NAME} PROPERTIES 
+        MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
+        VS_WINRT_COMPONENT FALSE
+        VS_GLOBAL_AppxPackageSigningEnabled OFF
+    )
+    
+    # Add dummy assets
+    set(UWP_ASSETS
+        ${SRC_DIR}/UWP/Assets/Square150x150Logo.png
+        ${SRC_DIR}/UWP/Assets/Square44x44Logo.png
+        ${SRC_DIR}/UWP/Assets/Wide310x150Logo.png
+        ${SRC_DIR}/UWP/Assets/SplashScreen.png
+        ${SRC_DIR}/UWP/Assets/StoreLogo.png
+    )
+    
+    foreach(ASSET ${UWP_ASSETS})
+        set_source_files_properties(${ASSET} PROPERTIES VS_DEPLOYMENT_CONTENT 1 VS_DEPLOYMENT_LOCATION "Assets")
+    endforeach()
+    
+    target_sources(${PROJECT_NAME} PRIVATE ${UWP_ASSETS})
+
+elseif (ENABLE_GUI)
 
     list(APPEND SRC
+        ${SRC_DIR}/main.cpp
         ${SRC_DIR}/GUI/MainFrame.cpp
         ${SRC_DIR}/GUI/MainFrame_Create.cpp
         ${SRC_DIR}/GUI/MainFrame_Log.cpp
@@ -111,34 +177,54 @@ if (ENABLE_GUI)
 
 else()
 
+    list(APPEND SRC ${SRC_DIR}/main.cpp)
     add_executable(${PROJECT_NAME} ${SRC})
 
 endif()
+
+# Rename the output exe to "XB converter"
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "XB converter")
 
 if (WIN32)
 
     find_package(lz4 CONFIG REQUIRED)
     find_package(zstd CONFIG REQUIRED)
     find_package(nlohmann_json CONFIG REQUIRED)
-    find_package(CLI11 CONFIG REQUIRED)
-    find_package(OpenSSL CONFIG REQUIRED)
-    find_package(CURL REQUIRED)
-    find_package(wxWidgets CONFIG REQUIRED)
 
-    target_link_libraries(${PROJECT_NAME} PRIVATE
-        zarchive
+    if (CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+        target_link_libraries(xgd_core PUBLIC
+            zarchive
+            lz4::lz4
+            zstd::libzstd
+            nlohmann_json::nlohmann_json
+        )
+        target_link_libraries(${PROJECT_NAME} PRIVATE
+            xgd_core
+            zarchive
+            lz4::lz4
+            zstd::libzstd
+            nlohmann_json::nlohmann_json
+        )
+    else()
+        # Desktop build: full features
+        find_package(CLI11 CONFIG REQUIRED)
+        find_package(OpenSSL CONFIG REQUIRED)
+        find_package(CURL REQUIRED)
+        find_package(wxWidgets CONFIG REQUIRED)
 
-        wx::core 
-        wx::base
-
-        lz4::lz4
-        zstd::libzstd
-        CLI11::CLI11
-        nlohmann_json::nlohmann_json
-        OpenSSL::SSL 
-        OpenSSL::Crypto
-        CURL::libcurl
-    )
+        target_link_libraries(${PROJECT_NAME} PRIVATE
+            zarchive
+            lz4::lz4
+            zstd::libzstd
+            nlohmann_json::nlohmann_json
+            OpenSSL::SSL 
+            OpenSSL::Crypto
+            CURL::libcurl
+            wx::core 
+            wx::base
+            CLI11::CLI11
+        )
+    endif()
 
     if(MSVC)
         target_compile_options(zarchive PRIVATE /wd4244)

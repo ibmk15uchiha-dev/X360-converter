@@ -5,7 +5,7 @@
 
 #include "XGDLog.h"
 
-enum class Platform { UNKNOWN, OGX, X360 };
+enum class XboxPlatform { UNKNOWN, OGX, X360 };
 enum class FileType { UNKNOWN, CCI, CSO, ISO, ZAR, DIR, GoD, XBE, LIST };
 enum class ScrubType { NONE, PARTIAL, FULL };
 enum class AutoFormat { NONE, OGXBOX, XBOX360, XEMU, XENIA };
